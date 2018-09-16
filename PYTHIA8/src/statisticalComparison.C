@@ -16,7 +16,7 @@
 #include "Utility/include/histDefUtility.h"
 #include "Utility/include/returnRootFileContentsList.h"
 
-int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName)
+int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName, bool isStagPyt6)
 {
   bool goodFlatFile = checkFile(flatPthatFileName);
   bool goodStagFile = checkFile(stagPthatFileName);
