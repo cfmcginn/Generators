@@ -22,7 +22,7 @@ MKDIR_BIN=mkdir -p $(PWD)/bin
 MKDIR_OUTPUT=mkdir -p $(PWD)/output
 MKDIR_PDF=mkdir -p $(PWD)/pdfDir
 
-all: mkdirBin mkdirPdf mkdirOutput bin/pythia8CUETP8M2T4.exe bin/statisticalComparison.exe bin/removeDuplicateTNamed.exe
+all: mkdirBin mkdirPdf mkdirOutput bin/pythia8CUETP8M2T4.exe bin/statisticalComparison.exe bin/removeDuplicateTNamed.exe bin/forestToGen.exe
 
 mkdirBin:
 	$(MKDIR_BIN)
@@ -41,6 +41,9 @@ bin/statisticalComparison.exe: src/statisticalComparison.C
 
 bin/removeDuplicateTNamed.exe: src/removeDuplicateTNamed.C
 	$(CXX) src/removeDuplicateTNamed.C -o bin/removeDuplicateTNamed.exe $(CXXFLAGS) $(ROOT) $(INCLUDE) 
+
+bin/forestToGen.exe: src/forestToGen.C
+	$(CXX) src/forestToGen.C -o bin/forestToGen.exe $(CXXFLAGS) $(ROOT) $(INCLUDE) 
 
 clean:
 	rm -f ./*~
