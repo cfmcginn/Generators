@@ -22,7 +22,7 @@ MKDIR_BIN=mkdir -p $(PWD)/bin
 MKDIR_OUTPUT=mkdir -p $(PWD)/output
 MKDIR_PDF=mkdir -p $(PWD)/pdfDir
 
-all: mkdirBin mkdirPdf mkdirOutput bin/forestToGen.exe bin/pythia8CUETP8M2T4.exe bin/statisticalComparison.exe bin/removeDuplicateTNamed.exe
+all: mkdirBin mkdirPdf mkdirOutput bin/forestToGen.exe bin/statisticalComparison.exe  bin/removeDuplicateTNamed.exe bin/pythia8CUETP8M2T4.exe 
 
 mkdirBin:
 	$(MKDIR_BIN)
