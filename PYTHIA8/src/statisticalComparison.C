@@ -11,12 +11,12 @@
 #include "TNamed.h"
 
 //Local dependencies
-#include "Utility/include/checkMakeDir.h"
-#include "Utility/include/getLinBins.h"
-#include "Utility/include/histDefUtility.h"
-#include "Utility/include/returnRootFileContentsList.h"
+#include "include/checkMakeDir.h"
+#include "include/getLinBins.h"
+#include "include/histDefUtility.h"
+#include "include/returnRootFileContentsList.h"
 
-int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName, bool isStagPyt6)
+int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName)
 {
   bool goodFlatFile = checkFile(flatPthatFileName);
   bool goodStagFile = checkFile(stagPthatFileName);
