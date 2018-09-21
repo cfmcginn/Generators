@@ -17,10 +17,10 @@
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
 
-//Local dependencies
-#include "include/checkMakeDir.h"
-#include "include/plotUtilities.h"
-#include "include/stringUtil.h"
+//Non-local dependencies
+#include "Utility/include/checkMakeDir.h"
+#include "Utility/include/plotUtilities.h"
+#include "Utility/include/stringUtil.h"
 
 //TUNE LINKS:
 //Common Block: https://github.com/cms-sw/cmssw/blob/master/Configuration/Generator/python/Pythia8CommonSettings_cfi.py
