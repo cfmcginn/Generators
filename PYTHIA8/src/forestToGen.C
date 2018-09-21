@@ -8,10 +8,10 @@
 #include "TTree.h"
 #include "TDatime.h"
 
-//Local dependencies
-#include "include/checkMakeDir.h"
-#include "include/returnRootFileContentsList.h"
-#include "include/stringUtil.h"
+//Non-local (Utility) dependencies
+#include "Utility/include/checkMakeDir.h"
+#include "Utility/include/returnRootFileContentsList.h"
+#include "Utility/include/stringUtil.h"
 
 int forestToGen(const std::string inFileName)
 {

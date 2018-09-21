@@ -9,9 +9,9 @@
 #include "TDirectoryFile.h"
 #include "TH1D.h"
 
-//Local dependencies
-#include "include/checkMakeDir.h"
-#include "include/returnRootFileContentsList.h"
+//Non-local (Utility) dependencies
+#include "Utility/include/checkMakeDir.h"
+#include "Utility/include/returnRootFileContentsList.h"
 
 int recursiveRemove(TDirectory* inDir_p, TFile* outFile_p, std::vector<TDirectory*>* outDir_p, int outDirPos)
 {

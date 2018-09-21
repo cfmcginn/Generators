@@ -10,11 +10,11 @@
 #include "TH1D.h"
 #include "TNamed.h"
 
-//Local dependencies
-#include "include/checkMakeDir.h"
-#include "include/getLinBins.h"
-#include "include/histDefUtility.h"
-#include "include/returnRootFileContentsList.h"
+//Non-local dependencies
+#include "Utility/include/checkMakeDir.h"
+#include "Utility/include/getLinBins.h"
+#include "Utility/include/histDefUtility.h"
+#include "Utility/include/returnRootFileContentsList.h"
 
 int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName)
 {
