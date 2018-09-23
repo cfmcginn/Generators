@@ -9,6 +9,8 @@
 #include "TTree.h"
 #include "TNamed.h"
 #include "TDirectoryFile.h"
+#include "TRandom3.h"
+#include "TMath.h"
 
 //PYTHIA8 dependencies
 #include "Pythia8/Pythia.h"
@@ -17,10 +19,10 @@
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
 
-//Non-local dependencies
-#include "Utility/include/checkMakeDir.h"
-#include "Utility/include/plotUtilities.h"
-#include "Utility/include/stringUtil.h"
+//Local dependencies
+#include "include/checkMakeDir.h"
+#include "include/plotUtilities.h"
+#include "include/stringUtil.h"
 
 //TUNE LINKS:
 //Common Block: https://github.com/cms-sw/cmssw/blob/master/Configuration/Generator/python/Pythia8CommonSettings_cfi.py
@@ -28,7 +30,7 @@
 //CP5: https://github.com/cms-sw/cmssw/blob/master/Configuration/Generator/python/MCTunes2017/PythiaCP5Settings_cfi.py
 //CUETP8M2T4: https://github.com/cms-sw/cmssw/blob/master/Configuration/Generator/python/Pythia8CUEP8M2T4Settings_cfi.py
 
-int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool keepParticles, bool keepJets, const int nEvt = 10000, const bool doFlatPthat = false, const double flatPthatScale = 4.5, const double pthatMin = 15., const double pthatMax = 999999.)
+int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool keepParticles, bool keepJets, bool keepWTA, const int nEvt = 10000, const bool doFlatPthat = false, const double flatPthatScale = 4.5, const double pthatMin = 15., const double pthatMax = 999999.)
 {
   if(!keepParticles && !keepJets){
     std::cout << "Both keepParticles and keepJets are false. No point in running if nothing is saved! return 1" << std::endl;
@@ -56,7 +58,8 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
     std::cout << "Return 1" << std::endl;
     return 1;
   }
-    
+
+  TRandom3* randGen_p = new TRandom3(0);
 
   TDatime* date = new TDatime();
   const std::string dateStr = std::to_string(date->GetDate());
@@ -86,7 +89,7 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   if(keepParticles) genParticleTree_p = new TTree("genParticleTree", "");
   if(keepJets){
     ak4GenJetTree_ESchemeWTA_p = new TTree("ak4GenJetTree_ESchemeWTA", "");
-    ak4GenJetTree_PureWTA_p = new TTree("ak4GenJetTree_PureWTA", "");
+    if(keepWTA) ak4GenJetTree_PureWTA_p = new TTree("ak4GenJetTree_PureWTA", "");
   }
     
   TDirectoryFile* paramsDir_p = (TDirectoryFile*)outFile_p->mkdir("paramsDir");
@@ -116,6 +119,7 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   
   Int_t nGenJt_ESchemeWTA_=0;
   std::vector<float>* genJtPt_ESchemeWTA_p = new std::vector<float>;
+  std::vector<float>* toyRecoJtPt_ESchemeWTA_p = new std::vector<float>;
   std::vector<float>* genJtPhi_ESchemeWTA_p = new std::vector<float>;
   std::vector<float>* genJtEta_ESchemeWTA_p = new std::vector<float>;
   std::vector<float>* genJtPtWTA_ESchemeWTA_p = new std::vector<float>;
@@ -147,16 +151,19 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
     
     ak4GenJetTree_ESchemeWTA_p->Branch("nGenJt", &nGenJt_ESchemeWTA_, "nGenJt/I");
     ak4GenJetTree_ESchemeWTA_p->Branch("genJtPt", &genJtPt_ESchemeWTA_p);
+    ak4GenJetTree_ESchemeWTA_p->Branch("toyRecoJtPt", &toyRecoJtPt_ESchemeWTA_p);
     ak4GenJetTree_ESchemeWTA_p->Branch("genJtPhi", &genJtPhi_ESchemeWTA_p);
     ak4GenJetTree_ESchemeWTA_p->Branch("genJtEta", &genJtEta_ESchemeWTA_p);  
-    ak4GenJetTree_ESchemeWTA_p->Branch("genJtPtWTA", &genJtPtWTA_ESchemeWTA_p);
-    ak4GenJetTree_ESchemeWTA_p->Branch("genJtPhiWTA", &genJtPhiWTA_ESchemeWTA_p);
-    ak4GenJetTree_ESchemeWTA_p->Branch("genJtEtaWTA", &genJtEtaWTA_ESchemeWTA_p);  
-
-    ak4GenJetTree_PureWTA_p->Branch("nGenJt", &nGenJt_PureWTA_, "nGenJt/I");
-    ak4GenJetTree_PureWTA_p->Branch("genJtPt", &genJtPt_PureWTA_p);
-    ak4GenJetTree_PureWTA_p->Branch("genJtPhi", &genJtPhi_PureWTA_p);
-    ak4GenJetTree_PureWTA_p->Branch("genJtEta", &genJtEta_PureWTA_p);  
+    if(keepWTA){
+      ak4GenJetTree_ESchemeWTA_p->Branch("genJtPtWTA", &genJtPtWTA_ESchemeWTA_p);
+      ak4GenJetTree_ESchemeWTA_p->Branch("genJtPhiWTA", &genJtPhiWTA_ESchemeWTA_p);
+      ak4GenJetTree_ESchemeWTA_p->Branch("genJtEtaWTA", &genJtEtaWTA_ESchemeWTA_p);  
+    
+      ak4GenJetTree_PureWTA_p->Branch("nGenJt", &nGenJt_PureWTA_, "nGenJt/I");
+      ak4GenJetTree_PureWTA_p->Branch("genJtPt", &genJtPt_PureWTA_p);
+      ak4GenJetTree_PureWTA_p->Branch("genJtPhi", &genJtPhi_PureWTA_p);
+      ak4GenJetTree_PureWTA_p->Branch("genJtEta", &genJtEta_PureWTA_p);
+    }
   }
   
   Pythia8::Pythia pythia;
@@ -279,20 +286,27 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
 	if(jets.at(jI).eta() > maxJtAbsEtaCut) continue;
 	
 	genJtPt_ESchemeWTA_p->push_back(jets.at(jI).pt());
+	double sigma = TMath::Sqrt(0.06*0.06 + 0.9*0.9/jets.at(jI).pt());
+	double tempToyRecoPt = jets.at(jI).pt()*randGen_p->Gaus(1.0, sigma);
+	toyRecoJtPt_ESchemeWTA_p->push_back(tempToyRecoPt);
+	
+	
 	genJtPhi_ESchemeWTA_p->push_back(jets.at(jI).phi_std());
 	genJtEta_ESchemeWTA_p->push_back(jets.at(jI).eta());
 
-	std::vector<fastjet::PseudoJet> constituents = jets.at(jI).constituents();
-
-	fastjet::ClusterSequence* cs2 = new fastjet::ClusterSequence(constituents, jtDef2);
-	std::vector<fastjet::PseudoJet> jets2 = fastjet::sorted_by_pt(cs->inclusive_jets());
-
-	genJtPtWTA_ESchemeWTA_p->push_back(jets2.at(0).pt());
-	genJtPhiWTA_ESchemeWTA_p->push_back(jets2.at(0).phi_std());
-	genJtEtaWTA_ESchemeWTA_p->push_back(jets2.at(0).eta());
-
-	jets2.clear();
-	delete cs2;
+	if(keepWTA){
+	  std::vector<fastjet::PseudoJet> constituents = jets.at(jI).constituents();
+	  
+	  fastjet::ClusterSequence* cs2 = new fastjet::ClusterSequence(constituents, jtDef2);
+	  std::vector<fastjet::PseudoJet> jets2 = fastjet::sorted_by_pt(cs->inclusive_jets());
+	  
+	  genJtPtWTA_ESchemeWTA_p->push_back(jets2.at(0).pt());
+	  genJtPhiWTA_ESchemeWTA_p->push_back(jets2.at(0).phi_std());
+	  genJtEtaWTA_ESchemeWTA_p->push_back(jets2.at(0).eta());
+	
+	  jets2.clear();
+	  delete cs2;
+	}
 	
 	++nGenJt_ESchemeWTA_;
       }
@@ -304,29 +318,31 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
 
       nGenJt_ESchemeWTA_ = 0;
       genJtPt_ESchemeWTA_p->clear();
+      toyRecoJtPt_ESchemeWTA_p->clear();
       genJtPhi_ESchemeWTA_p->clear();
       genJtEta_ESchemeWTA_p->clear();      
       genJtPtWTA_ESchemeWTA_p->clear();
       genJtPhiWTA_ESchemeWTA_p->clear();
       genJtEtaWTA_ESchemeWTA_p->clear();      
 
-      
-      cs = new fastjet::ClusterSequence(particles, jtDef3);
-      jets = fastjet::sorted_by_pt(cs->inclusive_jets(minJtPtCut));
-      
-      for(unsigned int jI = 0; jI < jets.size(); ++jI){
-	if(jets.at(jI).eta() > maxJtAbsEtaCut) continue;
+      if(keepWTA){
+	cs = new fastjet::ClusterSequence(particles, jtDef3);
+	jets = fastjet::sorted_by_pt(cs->inclusive_jets(minJtPtCut));
 	
-	genJtPt_PureWTA_p->push_back(jets.at(jI).pt());
-	genJtPhi_PureWTA_p->push_back(jets.at(jI).phi_std());
-	genJtEta_PureWTA_p->push_back(jets.at(jI).eta());	
+	for(unsigned int jI = 0; jI < jets.size(); ++jI){
+	  if(jets.at(jI).eta() > maxJtAbsEtaCut) continue;
+	  
+	  genJtPt_PureWTA_p->push_back(jets.at(jI).pt());
+	  genJtPhi_PureWTA_p->push_back(jets.at(jI).phi_std());
+	  genJtEta_PureWTA_p->push_back(jets.at(jI).eta());	
 	++nGenJt_PureWTA_;
+	}
+
+	jets.clear();
+	delete cs;
+      
+	ak4GenJetTree_PureWTA_p->Fill();
       }
-
-      jets.clear();
-      delete cs;
-
-      ak4GenJetTree_PureWTA_p->Fill();
     }
     
     particles.clear();
@@ -342,7 +358,7 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   if(keepParticles) genParticleTree_p->Write("", TObject::kOverwrite);
   if(keepJets){
     ak4GenJetTree_ESchemeWTA_p->Write("", TObject::kOverwrite);
-    ak4GenJetTree_PureWTA_p->Write("", TObject::kOverwrite);
+    if(keepWTA) ak4GenJetTree_PureWTA_p->Write("", TObject::kOverwrite);
   }
 
   paramsDir_p->cd();
@@ -364,10 +380,12 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   pthatMaxName.Write("", TObject::kOverwrite);
   crossSectionName.Write("", TObject::kOverwrite);
 
+  delete randGen_p;
+  
   if(keepParticles) delete genParticleTree_p;
   if(keepJets){
     delete ak4GenJetTree_ESchemeWTA_p;
-    delete ak4GenJetTree_PureWTA_p;
+    if(keepWTA) delete ak4GenJetTree_PureWTA_p;
   }
 
   genPt_p->clear();
@@ -383,6 +401,7 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   delete genChg_p;
 
   genJtPt_ESchemeWTA_p->clear();
+  toyRecoJtPt_ESchemeWTA_p->clear();
   genJtPhi_ESchemeWTA_p->clear();
   genJtEta_ESchemeWTA_p->clear();
   genJtPtWTA_ESchemeWTA_p->clear();
@@ -390,6 +409,7 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   genJtEtaWTA_ESchemeWTA_p->clear();
 
   delete genJtPt_ESchemeWTA_p;
+  delete toyRecoJtPt_ESchemeWTA_p;
   delete genJtPhi_ESchemeWTA_p;
   delete genJtEta_ESchemeWTA_p;
   delete genJtPtWTA_ESchemeWTA_p;
@@ -412,17 +432,17 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
 
 int main(int argc, char* argv[])
 {
-  if(argc < 5 || argc > 10){
-    std::cout << "Usage: ./bin/pythia8CUETP8M2T4.exe <outFileName> <tuneStr> <nEvt-opt> <doFlatPthat-opt> <flatPthatScale-opt> <pthatMin-opt> <pthatMax-opt>" << std::endl;
+  if(argc < 6 || argc > 11){
+    std::cout << "Usage: ./bin/pythia8CUETP8M2T4.exe <outFileName> <tuneStr> <keepParticles> <keepJets> <keepWTA> <nEvt-opt> <doFlatPthat-opt> <flatPthatScale-opt> <pthatMin-opt> <pthatMax-opt>" << std::endl;
     return 1;
   }
 
   int retVal = 0;
-  if(argc == 5) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]));
-  else if(argc == 6) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]));
+  if(argc == 6) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]));
   else if(argc == 7) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]));
-  else if(argc == 8) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stod(argv[7]));
-  else if(argc == 9) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stod(argv[7]), std::stod(argv[8]));
-  else if(argc == 10) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stod(argv[7]), std::stod(argv[8]), std::stod(argv[9]));
+  else if(argc == 8) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stoi(argv[7]));
+  else if(argc == 9) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stoi(argv[7]), std::stod(argv[8]));
+  else if(argc == 10)retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stoi(argv[7]), std::stod(argv[8]), std::stod(argv[9]));
+  else if(argc == 11) retVal += pythia8CUETP8M2T4(argv[1], argv[2], std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]), std::stoi(argv[7]), std::stod(argv[8]), std::stod(argv[9]), std::stod(argv[10]));
   return retVal;
 }

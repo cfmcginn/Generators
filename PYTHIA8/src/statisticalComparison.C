@@ -9,12 +9,13 @@
 #include "TDatime.h"
 #include "TH1D.h"
 #include "TNamed.h"
+#include "TRandom3.h"
 
-//Non-local dependencies
-#include "Utility/include/checkMakeDir.h"
-#include "Utility/include/getLinBins.h"
-#include "Utility/include/histDefUtility.h"
-#include "Utility/include/returnRootFileContentsList.h"
+//Local dependencies
+#include "include/checkMakeDir.h"
+#include "include/getLinBins.h"
+#include "include/histDefUtility.h"
+#include "include/returnRootFileContentsList.h"
 
 int statisticalComparison(const std::string flatPthatFileName, const std::string stagPthatFileName)
 {
@@ -30,6 +31,8 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
   TDatime* date = new TDatime();
   const std::string dateStr = std::to_string(date->GetDate());
   delete date;
+
+  TRandom3* randGen_p = new TRandom3(0);
   
   checkMakeDir("output");
 
@@ -110,11 +113,13 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
   
   TH1D* flatPthat_Unweighted_h = new TH1D("flatPthat_Unweighted_h", ";Flat p_{T} Hat (Unweighted);Counts (Unweighted)", nPthatBins, pthatBins);
   TH1D* flatPthat_Weighted_h = new TH1D("flatPthat_Weighted_h", ";Flat p_{T} Hat (Weighted);Counts (Weighted)", nPthatBins, pthatBins);
-
+  TH1D* flatPthat_Weighted_OneNinth_h = new TH1D("flatPthat_Weighted_OneNinth_h", ";Flat p_{T} Hat (Weighted);Counts (Weighted)", nPthatBins, pthatBins);
+  
   TH1D* stagPthat_Unweighted_h = new TH1D("stagPthat_Unweighted_h", ";Stag p_{T} Hat (Unweighted);Counts (Unweighted)", nPthatBins, pthatBins);
   TH1D* stagPthat_Weighted_h = new TH1D("stagPthat_Weighted_h", ";Stag p_{T} Hat (Weighted);Counts (Weighted)", nPthatBins, pthatBins);
+  TH1D* stagPthat_Weighted_OneNinth_h = new TH1D("stagPthat_Weighted_OneNinth_h", ";Stag p_{T} Hat (Weighted);Counts (Weighted)", nPthatBins, pthatBins);
 
-  std::vector<TH1*> tempVect = {flatPthat_Unweighted_h, flatPthat_Weighted_h, stagPthat_Unweighted_h, stagPthat_Weighted_h};
+  std::vector<TH1*> tempVect = {flatPthat_Unweighted_h, flatPthat_Weighted_h, flatPthat_Weighted_OneNinth_h, stagPthat_Unweighted_h, stagPthat_Weighted_h, stagPthat_Weighted_OneNinth_h};
   centerTitles(tempVect);
   setSumW2(tempVect);
   
@@ -150,6 +155,8 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
 
     flatPthat_Unweighted_h->Fill(pthat_);
     flatPthat_Weighted_h->Fill(pthat_, weight_/weightRenorm);
+    double pick = randGen_p->Uniform(0, 9);
+    if(pick < 1) flatPthat_Weighted_OneNinth_h->Fill(pthat_, weight_/weightRenorm);    
   }
   
   inFlatFile_p->Close();
@@ -217,6 +224,8 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
 
     stagPthat_Unweighted_h->Fill(pthat_);
     stagPthat_Weighted_h->Fill(pthat_, tempWeight_);
+    double pick = randGen_p->Uniform(0, 9);
+    if(pick < 1) stagPthat_Weighted_OneNinth_h->Fill(pthat_, tempWeight_);    
   }
 
   inStagFile_p->Close();
@@ -226,6 +235,7 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
 
   flatPthat_Unweighted_h->Write("", TObject::kOverwrite);
   flatPthat_Weighted_h->Write("", TObject::kOverwrite);
+  flatPthat_Weighted_OneNinth_h->Write("", TObject::kOverwrite);
 
   //Do Clones
   TH1D* flatPthat_Unweighted_Scale_h = (TH1D*)flatPthat_Unweighted_h->Clone("flatPthat_Unweighted_Scale_h");
@@ -262,6 +272,8 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
   
   stagPthat_Unweighted_h->Write("", TObject::kOverwrite);
   stagPthat_Weighted_h->Write("", TObject::kOverwrite);
+  stagPthat_Weighted_OneNinth_h->Write("", TObject::kOverwrite);
+
   TH1D* stagPthat_Weighted_Norm_h = (TH1D*)stagPthat_Weighted_h->Clone("stagPthat_Weighted_Norm_h");
   stagPthat_Weighted_Norm_h->Scale(1./stagPthat_Weighted_h->Integral());
   stagPthat_Weighted_Norm_h->Write("", TObject::kOverwrite);
@@ -298,10 +310,12 @@ int statisticalComparison(const std::string flatPthatFileName, const std::string
   delete flatPthat_Unweighted_Scale_h;
   delete flatPthat_Unweighted_ScaleRelErr_h;
   delete flatPthat_Weighted_h;
+  delete flatPthat_Weighted_OneNinth_h;
   delete flatPthat_Weighted_Norm_h;
 
   delete stagPthat_Unweighted_h;
   delete stagPthat_Weighted_h;
+  delete stagPthat_Weighted_OneNinth_h;
   delete stagPthat_Weighted_Norm_h;
   delete stagPthat_Unweighted_Scale_h;
   delete stagPthat_Unweighted_ScaleRelErr_h;
