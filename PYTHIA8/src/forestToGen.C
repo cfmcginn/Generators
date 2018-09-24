@@ -114,8 +114,11 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   while(outFileName.find("/") != std::string::npos){outFileName.replace(0, outFileName.find("/")+1, "");}
   if(outFileName.find(".") != std::string::npos) outFileName.replace(outFileName.find("."), outFileName.size(), "");
 
+  std::string isPyt6Str = "True";
+  if(!isPyt6) isPyt6Str = "False";
+
   checkMakeDir("output");
-  outFileName = "output/" + outFileName + "_ForestToGen_IsPyt6" + std::to_string(isPyt6)  + "_" + dateStr + ".root";
+  outFileName = "output/" + outFileName + "_ForestToGen_IsPyt6" + isPyt6Str  + "_" + dateStr + ".root";
   
   TFile* outFile_p = new TFile(outFileName.c_str(), "RECREATE");
   TTree* genTree_p = new TTree("genTree", "");
