@@ -115,7 +115,7 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   if(outFileName.find(".") != std::string::npos) outFileName.replace(outFileName.find("."), outFileName.size(), "");
 
   checkMakeDir("output");
-  outFileName = "output/" + outFileName + "_ForestToGen_" + dateStr + ".root";
+  outFileName = "output/" + outFileName + "_ForestToGen_IsPyt6" + std::to_string(isPyt6)  + "_" + dateStr + ".root";
   
   TFile* outFile_p = new TFile(outFileName.c_str(), "RECREATE");
   TTree* genTree_p = new TTree("genTree", "");
@@ -128,11 +128,14 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   const Int_t nMaxJet = 500;
   Int_t nGenInJt_;
   Float_t genInJtPt_[nMaxJet];
+  Float_t recoInJtPt_[nMaxJet];
   Float_t genInJtPhi_[nMaxJet];
   Float_t genInJtEta_[nMaxJet];
+  Int_t genInJtMatchIndex_[nMaxJet];
 
   Int_t nGenJt_;
   std::vector<float>* genJtPt_p = new std::vector<float>;
+  std::vector<float>* toyRecoJtPt_p = new std::vector<float>;
   std::vector<float>* genJtPhi_p = new std::vector<float>;
   std::vector<float>* genJtEta_p = new std::vector<float>;
 
@@ -140,6 +143,7 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   genTree_p->Branch("weight", &weight_, "weight/F");
   genTree_p->Branch("nGenJt", &nGenJt_, "nGenJt/I");
   genTree_p->Branch("genJtPt", &genJtPt_p);
+  genTree_p->Branch("toyRecoJtPt", &toyRecoJtPt_p);
   genTree_p->Branch("genJtPhi", &genJtPhi_p);
   genTree_p->Branch("genJtEta", &genJtEta_p);
   
@@ -154,14 +158,18 @@ int forestToGen(const std::string inFileName, bool isPyt6)
     inTree_p->SetBranchStatus("pthat", 1);
     inTree_p->SetBranchStatus("ngen", 1);
     inTree_p->SetBranchStatus("genpt", 1);
+    inTree_p->SetBranchStatus("jtpt", 1);
     inTree_p->SetBranchStatus("genphi", 1);
     inTree_p->SetBranchStatus("geneta", 1);
+    inTree_p->SetBranchStatus("genmatchindex", 1);
 
     inTree_p->SetBranchAddress("pthat", &pthat_);
     inTree_p->SetBranchAddress("ngen", &nGenInJt_);
     inTree_p->SetBranchAddress("genpt", genInJtPt_);
+    inTree_p->SetBranchAddress("jtpt", recoInJtPt_);
     inTree_p->SetBranchAddress("genphi", genInJtPhi_);
     inTree_p->SetBranchAddress("geneta", genInJtEta_);
+    inTree_p->SetBranchAddress("genmatchindex", genInJtMatchIndex_);
 
     const Int_t nEntries = inTree_p->GetEntries();
     for(Int_t entry = 0; entry < nEntries; ++entry){
@@ -172,11 +180,14 @@ int forestToGen(const std::string inFileName, bool isPyt6)
 
       nGenJt_ = 0;
       genJtPt_p->clear();
+      toyRecoJtPt_p->clear();
       genJtPhi_p->clear();
       genJtEta_p->clear();
 
       for(Int_t jI = 0; jI < nGenInJt_; ++jI){
 	genJtPt_p->push_back(genInJtPt_[jI]);
+	if(genInJtMatchIndex_[jI] >= 0) toyRecoJtPt_p->push_back(recoInJtPt_[genInJtMatchIndex_[jI]]);
+	else toyRecoJtPt_p->push_back(-999);
 	genJtPhi_p->push_back(genInJtPhi_[jI]);
 	genJtEta_p->push_back(genInJtEta_[jI]);
 	++nGenJt_;
@@ -259,6 +270,7 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   delete genTree_p;
 
   delete genJtPt_p;
+  delete toyRecoJtPt_p;
   delete genJtPhi_p;
   delete genJtEta_p;
   
