@@ -121,7 +121,7 @@ int forestToGen(const std::string inFileName, bool isPyt6)
   outFileName = "output/" + outFileName + "_ForestToGen_IsPyt6" + isPyt6Str  + "_" + dateStr + ".root";
   
   TFile* outFile_p = new TFile(outFileName.c_str(), "RECREATE");
-  TTree* genTree_p = new TTree("genTree", "");
+  TTree* genTree_p = new TTree("ak4GenJetTree_ESchemeWTA", "");
   TDirectoryFile* paramsDir_p = (TDirectoryFile*)outFile_p->mkdir("paramsDir");
   Int_t nEvt = 0;
   Float_t pthatMin = 100000;
