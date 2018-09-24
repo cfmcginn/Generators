@@ -19,10 +19,10 @@
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
 
-//Local dependencies
-#include "include/checkMakeDir.h"
-#include "include/plotUtilities.h"
-#include "include/stringUtil.h"
+//Non-local (Utility) dependencies
+#include "Utility/include/checkMakeDir.h"
+#include "Utility/include/plotUtilities.h"
+#include "Utility/include/stringUtil.h"
 
 //TUNE LINKS:
 //Common Block: https://github.com/cms-sw/cmssw/blob/master/Configuration/Generator/python/Pythia8CommonSettings_cfi.py
@@ -133,8 +133,10 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
 
   
   if(keepParticles){
-    genParticleTree_p->Branch("pthat", &pthat_, "pthat/F");
-    genParticleTree_p->Branch("weight", &weight_, "weight/F");  
+    if(!keepJets){
+      genParticleTree_p->Branch("pthat", &pthat_, "pthat/F");
+      genParticleTree_p->Branch("weight", &weight_, "weight/F");
+    }
     genParticleTree_p->Branch("nPart", &nPart_, "nPart/I");
     genParticleTree_p->Branch("pt", &genPt_p);
     genParticleTree_p->Branch("phi", &genPhi_p);
@@ -144,11 +146,8 @@ int pythia8CUETP8M2T4(std::string outFileName, const std::string tuneStr, bool k
   }
   
   if(keepJets){
-    if(!keepParticles){
-      ak4GenJetTree_ESchemeWTA_p->Branch("pthat", &pthat_, "pthat/F");
-      ak4GenJetTree_ESchemeWTA_p->Branch("weight", &weight_, "weight/F");  
-    }
-    
+    ak4GenJetTree_ESchemeWTA_p->Branch("pthat", &pthat_, "pthat/F");
+    ak4GenJetTree_ESchemeWTA_p->Branch("weight", &weight_, "weight/F");  
     ak4GenJetTree_ESchemeWTA_p->Branch("nGenJt", &nGenJt_ESchemeWTA_, "nGenJt/I");
     ak4GenJetTree_ESchemeWTA_p->Branch("genJtPt", &genJtPt_ESchemeWTA_p);
     ak4GenJetTree_ESchemeWTA_p->Branch("toyRecoJtPt", &toyRecoJtPt_ESchemeWTA_p);
