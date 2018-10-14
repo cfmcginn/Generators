@@ -10,6 +10,12 @@
 #include "TRandom3.h"
 #include "TH2.h"
 
+//EXAMPLE USAGE:
+//trandomWithTH2 recoMatrix(th2RecoMatrix);
+//Double_t getReco = recoMatrix.GetRecoPtFromMatrix(genPt);
+//...DO STUFF...
+//recoMatrix.Clean();
+
 class trandomWithTH2
 {
  public:
