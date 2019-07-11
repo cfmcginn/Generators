@@ -21,7 +21,7 @@ MKDIR_BIN=mkdir -p $(PWD)/bin
 MKDIR_OUTPUT=mkdir -p $(PWD)/output
 MKDIR_PDF=mkdir -p $(PWD)/pdfDir
 
-all: mkdirBin mkdirPdf mkdirOutput bin/forestToGen.exe bin/statisticalComparison.exe  bin/removeDuplicateTNamed.exe bin/pythia8CUETP8M2T4.exe 
+all: mkdirBin mkdirPdf mkdirOutput bin/forestToGen.exe bin/statisticalComparison.exe  bin/removeDuplicateTNamed.exe bin/pythia8CUETP8M2T4.exe  bin/pythia8MultiJet.exe 
 
 mkdirBin:
 	$(MKDIR_BIN)
@@ -34,6 +34,9 @@ mkdirPdf:
 
 bin/pythia8CUETP8M2T4.exe: src/pythia8CUETP8M2T4.C
 	$(CXX) $(CXXFLAGS) src/pythia8CUETP8M2T4.C -o bin/pythia8CUETP8M2T4.exe $(ROOT) $(FASTJET) $(MOREPYTHIA8) $(LHAPDF6) $(INCLUDE) 
+
+bin/pythia8MultiJet.exe: src/pythia8MultiJet.C
+	$(CXX) $(CXXFLAGS) src/pythia8MultiJet.C -o bin/pythia8MultiJet.exe $(ROOT) $(FASTJET) $(MOREPYTHIA8) $(LHAPDF6) $(INCLUDE) 
 
 bin/statisticalComparison.exe: src/statisticalComparison.C
 	$(CXX) $(CXXFLAGS) src/statisticalComparison.C -o bin/statisticalComparison.exe $(ROOT) $(INCLUDE) 
